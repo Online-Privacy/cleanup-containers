@@ -36,6 +36,18 @@ jobs:
       - name: Build extension
         run: npm run web-ext:build
 
+      - name: Create Git tag from manifest version
+        id: tag_version
+        run: |
+          version=$(jq -r .version src/manifest.json)
+          echo "Version: $version"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "v$version"
+          git push origin "v$version"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create Release
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v1
