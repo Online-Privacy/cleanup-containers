@@ -1,0 +1,21 @@
+{
+    "name": "cleanup-containers",
+    "version": "1.0.0",
+    "description": "Firefox extension to remove containers by regex with optional active-tab skipping",
+    "author": "tekicat",
+    "license": "MIT",
+    "scripts": {
+        "test": "vitest"
+    },
+    "devDependencies": {
+        "vitest": "^3.1.3",
+        "webextensions-api-fake": "^0.9.1"
+    },
+    "keywords": [
+        "firefox-extension",
+        "containers",
+        "contextual-identities",
+        "regex",
+        "cleanup"
+    ]
+}
