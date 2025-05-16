@@ -1,73 +1,93 @@
-import { describe, it, expect, vi } from 'vitest';
-import { WebExtensionsApiFake } from 'webextensions-api-fake';
-import { removeContainers } from '../removeContainers';
+const sinon = require('sinon');
+const sinonChrome = require('sinon-chrome');
+const { removeContainers } = require('../src/removeContainers');
 
 describe('removeContainers', () => {
+  beforeEach(() => {
+    sinonChrome.reset();
+    global.browser = sinonChrome;
+
+    // Manually mock contextualIdentities namespace with stub methods
+    browser.contextualIdentities = {
+      query: sinon.stub().resolves([]),
+      remove: sinon.stub().resolves(),
+    };
+
+    // Stub tabs.query method
+    browser.tabs.query = sinon.stub().resolves([]);
+  });
+
+  afterEach(() => {
+    sinonChrome.reset();
+  });
+
   it('removes only matching and inactive containers by default', async () => {
-    const browser = new WebExtensionsApiFake();
-
-    // Add fake containers
-    browser.contextualIdentities.query.mockResolvedValue([
-      { name: 'tmp1', cookieStoreId: 'store-1' },
-      { name: 'tmp2', cookieStoreId: 'store-2' },
-      { name: 'keep', cookieStoreId: 'store-3' }
+    browser.contextualIdentities.query.resolves([
+      { name: 'tmp1', cookieStoreId: 'firefox-container-1' },
+      { name: 'tmp2', cookieStoreId: 'firefox-container-2' },
+      { name: 'keep', cookieStoreId: 'firefox-container-3' },
     ]);
-
-    // Simulate tabs using only store-2 (active)
-    browser.tabs.query.mockResolvedValue([
-      { cookieStoreId: 'store-2' }
+    browser.tabs.query.resolves([
+      { cookieStoreId: 'firefox-container-2' } // active tab in tmp2
     ]);
-
-    // Spy on remove
-    const removeSpy = vi.fn();
-    browser.contextualIdentities.remove = removeSpy;
+    browser.contextualIdentities.remove.resolves();
 
     const removed = await removeContainers({
       patternInput: '^tmp',
       includeActive: false,
-      browser
+      browser,
     });
 
-    expect(removed).toEqual(['tmp1']); // tmp2 is skipped (active)
-    expect(removeSpy).toHaveBeenCalledTimes(1);
-    expect(removeSpy).toHaveBeenCalledWith('store-1');
+    expect(removed).toEqual(['tmp1']);
+    sinon.assert.calledOnce(browser.contextualIdentities.remove);
+    sinon.assert.calledWith(browser.contextualIdentities.remove, 'firefox-container-1');
   });
 
-  it('removes matching containers even if active when checkbox is true', async () => {
-    const browser = new WebExtensionsApiFake();
-
-    browser.contextualIdentities.query.mockResolvedValue([
-      { name: 'tmp1', cookieStoreId: 'store-1' },
-      { name: 'tmp2', cookieStoreId: 'store-2' }
+  it('removes matching containers including active when includeActive is true', async () => {
+    browser.contextualIdentities.query.resolves([
+      { name: 'tmp1', cookieStoreId: 'firefox-container-1' },
+      { name: 'tmp2', cookieStoreId: 'firefox-container-2' },
+      { name: 'keep', cookieStoreId: 'firefox-container-3' },
     ]);
-
-    browser.tabs.query.mockResolvedValue([
-      { cookieStoreId: 'store-1' },
-      { cookieStoreId: 'store-2' }
+    browser.tabs.query.resolves([
+      { cookieStoreId: 'firefox-container-2' } // active tab in tmp2
     ]);
-
-    const removeSpy = vi.fn();
-    browser.contextualIdentities.remove = removeSpy;
+    browser.contextualIdentities.remove.resolves();
 
     const removed = await removeContainers({
       patternInput: '^tmp',
       includeActive: true,
-      browser
+      browser,
     });
 
     expect(removed).toEqual(['tmp1', 'tmp2']);
-    expect(removeSpy).toHaveBeenCalledTimes(2);
+    sinon.assert.calledTwice(browser.contextualIdentities.remove);
+    sinon.assert.calledWith(browser.contextualIdentities.remove, 'firefox-container-1');
+    sinon.assert.calledWith(browser.contextualIdentities.remove, 'firefox-container-2');
   });
 
-  it('throws on invalid regex input', async () => {
-    const browser = new WebExtensionsApiFake();
+  it('throws on invalid regex pattern', async () => {
+    await expect(removeContainers({
+      patternInput: '[invalid',
+      includeActive: false,
+      browser,
+    })).rejects.toThrow('Invalid regex: Invalid regular expression: /[invalid/: Unterminated character class');
+  });
 
-    await expect(() =>
-      removeContainers({
-        patternInput: '[unclosed',
-        includeActive: true,
-        browser
-      })
-    ).rejects.toThrow(/Invalid regex/);
+  it('does not remove any containers if none match', async () => {
+    browser.contextualIdentities.query.resolves([
+      { name: 'work', cookieStoreId: 'store-1' },
+      { name: 'play', cookieStoreId: 'store-2' },
+    ]);
+    browser.tabs.query.resolves([]);
+
+    const removed = await removeContainers({
+      patternInput: '^tmp',
+      includeActive: false,
+      browser,
+    });
+
+    expect(removed).toEqual([]);
+    sinon.assert.notCalled(browser.contextualIdentities.remove);
   });
 });

@@ -1,4 +1,4 @@
-import { removeContainers } from './removeContainers.js';
+const { removeContainers } = require('../src/removeContainers');
 
 document.getElementById("removeBtn").addEventListener("click", async () => {
   const patternInput = document.getElementById("pattern").value.trim();

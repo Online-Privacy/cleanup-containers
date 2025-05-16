@@ -1,4 +1,4 @@
-export async function removeContainers({ patternInput, includeActive, browser }) {
+async function removeContainers({ patternInput, includeActive, browser }) {
     let regex;
     try {
       regex = new RegExp(patternInput);
@@ -29,3 +29,4 @@ export async function removeContainers({ patternInput, includeActive, browser })
     return removed;
   }
   
+module.exports = { removeContainers };
