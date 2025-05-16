@@ -5,7 +5,9 @@
     "author": "tekicat",
     "license": "MIT",
     "scripts": {
-        "test": "jest"
+        "test": "jest",
+        "web-ext:lint": "web-ext lint --source-dir ./src",
+        "web-ext:build": "web-ext build --source-dir ./src --artifacts-dir=./out"
     },
     "jest": {
         "setupFiles": [
@@ -15,7 +17,8 @@
     "devDependencies": {
         "jest": "^29.7.0",
         "sinon": "^20.0.0",
-        "sinon-chrome": "^3.0.1"
+        "sinon-chrome": "^3.0.1",
+        "web-ext": "^8.6.0"
     },
     "keywords": [
         "firefox-extension",

@@ -64,6 +64,15 @@ npm install
 npm test
 ```
 
+## 🚧 Build and Lint
+
+Use Mozilla's `web-ext` tool to lint and build the extension for Firefox.
+
+```bash
+npm run web-ext:lint     # Checks your code for common issues
+npm run web-ext:build    # Packages your extension into a `.zip` in ./out/ ready for Firefox
+```
+
 ## 📜 Permissions (manifest.json)
 
 The extension requires the following permissions to manage containers and tabs:

@@ -8,6 +8,7 @@ node_modules/
 dist/
 build/
 cloned_repos/
+out/
 
 # Logs
 npm-debug.log*

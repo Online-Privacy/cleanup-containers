@@ -1,31 +1,45 @@
-name: Build and Test
+name: Build, Test, Lint, and Release
 
 on:
   push:
-    branches: 
+    branches:
       - main
   pull_request:
-    branches: 
-     - main
+    branches:
+      - main
 
 permissions:
   contents: read
 
 jobs:
-  test:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '22'  
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Run tests
-      run: npm test
+      - name: Run tests
+        run: npm test
+
+      - name: Run lint
+        run: npm run web-ext:lint
+        
+      - name: Build extension
+        run: npm run web-ext:build
+
+      - name: Create Release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: 'out/*.zip'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
