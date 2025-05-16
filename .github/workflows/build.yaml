@@ -36,22 +36,33 @@ jobs:
       - name: Build extension
         run: npm run web-ext:build
 
-      - name: Create Git tag from manifest version
-        id: tag_version
+      # Step: Extract version and output tag
+      - name: Get version from manifest.json
+        id: get_version
         run: |
           version=$(jq -r .version src/manifest.json)
-          echo "Version: $version"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+      - name: Check if tag already exists
+        run: |
+          tag=${{ steps.get_version.outputs.tag }}
+          echo "Checking if tag $tag exists..."
+          if git rev-parse "$tag" >/dev/null 2>&1; then
+            echo "❌ Tag $tag already exists. Aborting."
+            echo "Update the version in manifest and package.json"
+            exit 1
+          fi
+
+      # Step: Create and push Git tag
+      - name: Create and push Git tag
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "v$version"
-          git push origin "v$version"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git tag ${{ steps.get_version.outputs.tag }}
+          git push origin ${{ steps.get_version.outputs.tag }}
 
-      - name: Create Release
-        if: github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v1
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: 'out/*.zip'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: cleanup-containers@${{ steps.get_version.outputs.tag }}
+          path: out/*.zip
