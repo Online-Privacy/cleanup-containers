@@ -1,0 +1,19 @@
+{
+    "manifest_version": 2,
+    "name": "Remove Containers by Pattern",
+    "version": "1.1",
+    "permissions": ["contextualIdentities"],
+    "browser_action": {
+      "default_popup": "popup.html",
+      "default_title": "Remove Containers"
+    },
+    "background": {
+      "scripts": ["popup.js"]
+    },
+    "applications": {
+      "gecko": {
+        "id": "jrw2ypqlc@mozmail.com"
+      }
+    }
+  }
+  

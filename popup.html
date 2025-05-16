@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: sans-serif; margin: 10px; width: 250px; }
+    input[type="text"] { width: 100%; margin-bottom: 10px; }
+    label { font-size: 0.9em; display: block; margin-bottom: 10px; }
+    button { width: 100%; }
+    #status { margin-top: 10px; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <h3>Remove Containers</h3>
+  <input id="pattern" type="text" placeholder="Enter name prefix (e.g. tmp)" />
+  <label>
+    <input type="checkbox" id="includeActive" />
+    Also remove containers with open tabs
+  </label>
+  <button id="removeBtn">Remove</button>
+  <div id="status"></div>
+  <script src="popup.js"></script>
+</body>
+</html>
